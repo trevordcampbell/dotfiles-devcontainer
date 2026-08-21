@@ -20,7 +20,9 @@ if ! env -i \
   PATH=/usr/bin:/bin \
   POWERLEVEL9K_DISABLE_GITSTATUS=true \
   /usr/bin/zsh -lic \
-    'print -r -- "${P9K_VERSION:-}"; command -v cargo; command -v rustc' \
+    'print -r -- "${P9K_VERSION:-}"; command -v cargo; command -v rustc; \
+      print -r -- "${(j:,:)POWERLEVEL9K_LEFT_PROMPT_ELEMENTS}"; \
+      print -r -- "${(j:,:)POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS}"' \
     >"${stdout_file}" 2>"${stderr_file}"; then
   cat "${stderr_file}" >&2
   exit 1
@@ -42,6 +44,17 @@ if [[ "${startup_proof[1]:-}" != /usr/local/cargo/bin/cargo ]]; then
 fi
 if [[ "${startup_proof[2]:-}" != /usr/local/cargo/bin/rustc ]]; then
   echo "zsh startup did not preserve the image-owned rustc path" >&2
+  exit 1
+fi
+if [[ "${startup_proof[3]:-}" != os_icon,dir,vcs,newline,prompt_char ]]; then
+  echo "Powerlevel10k left prompt is not devcontainer-focused" >&2
+  exit 1
+fi
+expected_right_prompt=\
+'status,command_execution_time,background_jobs,direnv,virtualenv,node_version,go_version,'\
+'rust_version,dotnet_version,package,context,time,newline'
+if [[ "${startup_proof[4]:-}" != "${expected_right_prompt}" ]]; then
+  echo "Powerlevel10k right prompt is not devcontainer-focused" >&2
   exit 1
 fi
 
