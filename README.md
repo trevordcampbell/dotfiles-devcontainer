@@ -17,18 +17,32 @@ Configure Cursor or VS Code's **Dotfiles: Repository** setting to this repositor
 default target path of `~/dotfiles`. The Dev Containers dotfiles installer will link `.bashrc`,
 `.zshrc`, and `.p10k.zsh` into the remote user's home directory.
 
-Run the startup contract inside a compatible devcontainer with:
-
-```sh
-bash test-shell-startup.sh
-```
-
 The Node version segment remains enabled when a separate Node executable is
 installed. Bun compatibility links are detected by their resolved executable path,
 without launching a runtime or changing the image's toolchain.
 
-Run the focused runtime-selection regression in a container with Zsh:
+Run the regressions inside a Linux devcontainer that supplies Zsh and
+Powerlevel10k, with Bash, util-linux `script`, and GNU `timeout` available:
 
 ```sh
 bash test-prompt-runtime.sh
+bash test-shell-startup.sh
+bash test-first-prompt-input.sh
 ```
+
+These commands also work through plain `docker exec` or a headless test runner;
+an existing terminal is not required. The startup test allocates a controlling
+terminal when needed so Zsh job control and gitstatus initialize normally. It
+checks the real Bash/Zsh configuration and preserves the installed toolchain paths.
+
+The runtime-selection test records every stub invocation and requires an empty
+log after each case, even if the prompt ignores a command's error status or output.
+It covers Bun's Node alias, a separate Node executable, and a Node-only image.
+
+The first-prompt regression launches interactive Zsh in a temporary home and
+package directory. A fake Bun-backed Node command reproduces the offending probe's
+input consumption. The test queues a command before the first prompt, requires
+Powerlevel10k to be loaded, asserts that the command executed, and rejects any
+runtime probe. It uses an evaluated output marker to distinguish execution from
+terminal echo and a timeout to bound hangs. Temporary homes, logs, and fixtures
+are removed on exit; installed dotfiles and runtimes are not changed.

@@ -10,6 +10,7 @@ mkdir "${scratch}/bin"
 # Any runtime execution while selecting prompt segments is a regression.
 cat >"${scratch}/bin/bun" <<'RUNTIME'
 #!/bin/sh
+printf '%s\n' "$0 $*" >>"$PROBE_LOG"
 echo "Unexpected runtime probe" >&2
 exit 99
 RUNTIME
@@ -18,8 +19,10 @@ ln -s bun "${scratch}/bin/node"
 
 check_prompt() {
   local expected="$1"
+  : >"${scratch}/probes"
   env -i HOME="${scratch}" PATH="${scratch}/bin:/usr/bin:/bin" \
     PROMPT_CONFIG="${repo_root}/.p10k.zsh" EXPECT_NODE="${expected}" \
+    PROBE_LOG="${scratch}/probes" \
     /usr/bin/zsh -fc '
       source "$PROMPT_CONFIG"
       if (( EXPECT_NODE )); then
@@ -29,6 +32,11 @@ check_prompt() {
       fi
       [[ ${(j:,:)POWERLEVEL9K_LEFT_PROMPT_ELEMENTS} == os_icon,dir,vcs,newline,prompt_char ]]
     '
+  if [[ -s "${scratch}/probes" ]]; then
+    echo "Prompt selection executed a runtime, even if its status was ignored:" >&2
+    cat "${scratch}/probes" >&2
+    return 1
+  fi
 }
 
 check_prompt 0
