@@ -9,7 +9,8 @@ The configuration:
 - enables only the built-in `git` and `history` plugins;
 - loads Powerlevel10k from the authenticated Wunderbarcode image path first, with conventional
   devcontainer fallbacks;
-- reuses the existing Powerlevel10k prompt configuration; and
+- reuses the existing Powerlevel10k prompt configuration;
+- skips the Node version segment when `node` is Bun's compatibility symlink; and
 - never assumes Homebrew, pyenv, macOS, iTerm2, or host-specific tool paths.
 
 Configure Cursor or VS Code's **Dotfiles: Repository** setting to this repository URL and keep the
@@ -20,4 +21,14 @@ Run the startup contract inside a compatible devcontainer with:
 
 ```sh
 bash test-shell-startup.sh
+```
+
+The Node version segment remains enabled when a separate Node executable is
+installed. Bun compatibility links are detected by their resolved executable path,
+without launching a runtime or changing the image's toolchain.
+
+Run the focused runtime-selection regression in a container with Zsh:
+
+```sh
+bash test-prompt-runtime.sh
 ```

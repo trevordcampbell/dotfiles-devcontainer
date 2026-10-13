@@ -117,6 +117,16 @@
     # example               # example user-defined segment (see prompt_example function below)
   )
 
+  # Bun images may expose `node` as a compatibility symlink to Bun. That is
+  # not a Node.js runtime; probing it can consume terminal input before the
+  # first prompt. Keep the Node segment only for a separate Node executable.
+  if (( $+commands[node] && $+commands[bun] )) &&
+      [[ ${commands[node]:A} == "${commands[bun]:A}" ]]; then
+    POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+      ${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS:#node_version}
+    )
+  fi
+
   # Defines character set used by powerlevel10k. It's best to let `p10k configure` set it for you.
   typeset -g POWERLEVEL9K_MODE=nerdfont-complete
   # When set to `moderate`, some icons will have an extra space after them. This is meant to avoid
